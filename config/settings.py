@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # our apps
     "accounts",
+    "core",
+    "entities",
 ]
 
 MIDDLEWARE = [
