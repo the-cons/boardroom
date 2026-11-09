@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: boardroom
+      POSTGRES_USER: boardroom
+      POSTGRES_PASSWORD: boardroom
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boardroom -d boardroom"]
+      interval: 5s
+      retries: 5
+
+volumes:
+  pgdata:
