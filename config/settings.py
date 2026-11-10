@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "accounts",
     "core",
     "entities",
+    "people"
 ]
 
 MIDDLEWARE = [
