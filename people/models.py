@@ -3,7 +3,8 @@ from datetime import date
 from django.db import models
 from django.db.models import Q
 
-from django.contrib.postgres.fields import DateRangeField
+from django.contrib.postgres.constraints import ExclusionConstraint
+from django.contrib.postgres.fields import DateRangeField, RangeOperators
 
 from core.models import TimeStampedModel
 from entities.models import LegalEntity
@@ -49,6 +50,25 @@ class Mandate(TimeStampedModel):
             models.CheckConstraint(
                 condition=Q(period__lower_inf=False),
                 name="mandate_has_start_date",
+            ),
+            ExclusionConstraint(
+                name="no_overlapping_same_mandate",
+                expressions=[
+                    ("person", RangeOperators.EQUAL),
+                    ("entity", RangeOperators.EQUAL),
+                    ("role", RangeOperators.EQUAL),
+                    ("period", RangeOperators.OVERLAPS),
+                ],
+                violation_error_message="This person already holds this role at this entity during this period.",
+            ),
+            ExclusionConstraint(
+                name="one_chair_at_a_time",
+                expressions=[
+                    ("entity", RangeOperators.EQUAL),
+                    ("period", RangeOperators.OVERLAPS),
+                ],
+                condition=Q(role="CHAIR"),
+                violation_error_message="This entity already has a chairperson during this period.",
             ),
         ]
 
