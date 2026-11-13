@@ -18,7 +18,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 @admin.register(Mandate)
 class MandateAdmin(admin.ModelAdmin):
-    list_display = ["person", "role", "entity", "start_date", "end_date"]
+    list_display = ["person", "role", "entity", "period"]
     list_filter = ["role", "entity"]
     autocomplete_fields = ["person", "entity"]
     list_select_related = ["person", "entity"]

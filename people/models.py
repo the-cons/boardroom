@@ -1,7 +1,9 @@
 from datetime import date
 
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import Q
+
+from django.contrib.postgres.fields import DateRangeField
 
 from core.models import TimeStampedModel
 from entities.models import LegalEntity
@@ -23,10 +25,7 @@ class Person(TimeStampedModel):
 
 class MandateQuerySet(models.QuerySet):
     def active_on(self, day=None):
-        day = day or date.today()
-        return self.filter(start_date__lte=day).filter(
-            Q(end_date__isnull=True) | Q(end_date__gt=day)
-        )
+       return self.filter(period__contains=day or date.today())
 
 
 class Mandate(TimeStampedModel):
@@ -38,17 +37,18 @@ class Mandate(TimeStampedModel):
     person = models.ForeignKey(Person, on_delete=models.PROTECT, related_name="mandates")
     entity = models.ForeignKey(LegalEntity, on_delete=models.CASCADE, related_name="mandates")
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.DIRECTOR)
-    start_date = models.DateField()
-    end_date = models.DateField(null=True, blank=True, help_text="Leave empty if the mandate is ongoing.")
+    period = DateRangeField(
+        help_text="Start is inclusive, end is exclusive. Leave the end empty for an ongoing mandate."
+    )
 
     objects = MandateQuerySet.as_manager()
 
     class Meta:
-        ordering = ["start_date"]
+        ordering = ["period"]
         constraints = [
             models.CheckConstraint(
-                condition=Q(end_date__isnull=True) | Q(end_date__gt=F("start_date")),
-                name="mandate_end_after_start",
+                condition=Q(period__lower_inf=False),
+                name="mandate_has_start_date",
             ),
         ]
 
