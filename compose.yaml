@@ -1,4 +1,16 @@
 services:
+  web:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://boardroom:boardroom@db:5432/boardroom
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: postgres:18
     environment:
