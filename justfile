@@ -38,3 +38,7 @@ psql:
 # DANGER: delete the database volume and start from scratch
 reset-db:
     docker compose down -v
+
+# seed demo data (add --reset to wipe first)
+seed *args:
+    just manage seed {{args}}
