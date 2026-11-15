@@ -26,7 +26,7 @@ shell:
     just manage shell
 
 migrate:
-    just manage migrations
+    just manage migrate
 
 makemigrations *args:
     just manage makemigrations {{args}}

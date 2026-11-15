@@ -2,6 +2,7 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.backends.postgresql.psycopg_any import DateRange
@@ -75,7 +76,7 @@ class Command(BaseCommand):
         self.seed_ownerships(entities)
         people = self.seed_people()
         self.seed_mandates(people, entities)
-        self.seed_admin_user()
+        self.seed_users()
 
         self.stdout.write(self.style.SUCCESS("Demo data ready."))
 
@@ -130,14 +131,29 @@ class Command(BaseCommand):
             )
             self.log(mandate, created)
 
-    def seed_admin_user(self):
+    def seed_users(self):
         if not settings.DEBUG:
-            self.stdout.write(self.style.WARNING("DEBUG is off: not creating the admin user."))
+            self.stdout.write(self.style.WARNING("DEBUG is off: not creating demo users."))
             return
+
         User = get_user_model()
+
+        editors, _ = Group.objects.get_or_create(name="Editors")
+        editors.permissions.set(
+            Permission.objects.filter(content_type__app_label__in=["entities", "people"])
+        )
+
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser("admin", "admin@example.com", "admin")
-            self.stdout.write("  created  superuser admin / admin")
+            self.stdout.write(" created superuser admin / admin")
+
+        for username, groups in [("editor", [editors]), ("viewer", [])]:
+            user, created = User.objects.get_or_create(username=username)
+            if created:
+                user.set_password(username)
+                user.save()
+            user.groups.set(groups)
+            self.log(user, created)
 
     def log(self, obj, created):
         label = self.style.SUCCESS("created") if created else "exists "

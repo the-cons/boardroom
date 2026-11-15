@@ -1,12 +1,16 @@
 from rest_framework import viewsets
 
+from rest_framework.permissions import DjangoModelPermissions
+
 from .models import LegalEntity, Ownership
 from .serializers import LegalEntitySerializer, OwnershipSerializer
+from .permissions import InactiveEntitiesAreReadOnly
 
 
 class LegalEntityViewSet(viewsets.ModelViewSet):
     queryset = LegalEntity.objects.all()
     serializer_class = LegalEntitySerializer
+    permission_classes = [DjangoModelPermissions, InactiveEntitiesAreReadOnly]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -19,3 +23,4 @@ class LegalEntityViewSet(viewsets.ModelViewSet):
 class OwnershipViewSet(viewsets.ModelViewSet):
     queryset = Ownership.objects.all()
     serializer_class = OwnershipSerializer
+    permission_classes = [DjangoModelPermissions]
